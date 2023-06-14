@@ -2,7 +2,6 @@ package pabsqldriver
 
 import (
 	"database/sql"
-	"log"
 
 	_ "github.com/lib/pq"
 )
@@ -11,16 +10,14 @@ type SqlDriver struct {
 	DB *sql.DB
 }
 
-func NewSqlDriver(user string, password string, db string) *SqlDriver {
-	database, err := sql.Open(
+func NewSqlDriver(user string, password string, db string) (*SqlDriver, error) {
+	if database, err := sql.Open(
 		"postgres",
 		"user=" + user + " password=" + password + " dbname=" + db + " sslmode=disable",
-	)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return &SqlDriver{
-		DB: database,
+	); err != nil {
+		return nil, err
+	} else {
+		return &SqlDriver{DB: database}, nil
 	}
 }
 
