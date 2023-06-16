@@ -100,9 +100,9 @@ func (c *AsyncRabbitMQClient) SendMessage(body, queueName string, timeoutSeconds
 	return c.Channel.PublishWithContext(ctx, "", c.Queues[queueName].Name, false,  false, publishing)
 }
 
-func (c *AsyncRabbitMQClient) ConsumeMessages(queueName string, outChannel chan string, stopConsumingChannel chan bool) {
+func (c *AsyncRabbitMQClient) ConsumeMessages(queueName string, outChannel chan string, stopConsumingChannel chan bool) error {
 	if messages, err := c.Channel.Consume(c.Queues[queueName].Name, "", true, false, false, false, nil); err != nil {
-		return
+		return err
 	} else {
 		for {
 			select {
@@ -110,7 +110,7 @@ func (c *AsyncRabbitMQClient) ConsumeMessages(queueName string, outChannel chan 
 				msgBody := string(msg.Body)
 				outChannel <- msgBody
 			case <- stopConsumingChannel:
-				return
+				return nil
 			}
 		}
 	}
