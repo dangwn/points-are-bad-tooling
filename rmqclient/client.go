@@ -2,6 +2,7 @@ package rmqclient
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -19,7 +20,7 @@ type AsyncRabbitMQClient struct {
 /*
  * Creates a new rabbitmq client, and cleans up connections and channels if errors are thrown
  */
-func NewAsyncRabbitMQClient(connectionUrl, exchangeName string, queueNames []string) (a *AsyncRabbitMQClient, e error) {
+func NewAsyncRabbitMQClient(connectionUrl, exchangeName string, queueNames ...string) (a *AsyncRabbitMQClient, e error) {
 	var conn *amqp.Connection
 	var channel *amqp.Channel
 	var err error
@@ -37,6 +38,10 @@ func NewAsyncRabbitMQClient(connectionUrl, exchangeName string, queueNames []str
 			e = r.(error)
 		}
 	}()	
+
+	if len(queueNames) == 0 {
+		panic(errors.New("no queues supplied"))
+	}
 
 	if conn, err = amqp.Dial(connectionUrl); err != nil {
 		panic(err)
@@ -110,6 +115,7 @@ func (c *AsyncRabbitMQClient) ConsumeMessages(queueName string, outChannel chan 
 				msgBody := string(msg.Body)
 				outChannel <- msgBody
 			case <- stopConsumingChannel:
+				stopConsumingChannel <- true
 				return nil
 			}
 		}
