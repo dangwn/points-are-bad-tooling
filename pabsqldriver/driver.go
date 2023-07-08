@@ -10,6 +10,15 @@ type SqlDriver struct {
 	DB *sql.DB
 }
 
+func NewSqlDriverV2(user, password, host, port, db string) (*SqlDriver, error) {
+	url := "postgres://" + user + ":" + password + "@" + host + ":" + port + "/" + db + "?sslmode=disable"
+	if database, err := sql.Open("postgres", url); err != nil {
+		return nil, err
+	} else {
+		return &SqlDriver{DB: database}, nil
+	}
+}
+
 func NewSqlDriver(user string, password string, db string) (*SqlDriver, error) {
 	if database, err := sql.Open(
 		"postgres",
